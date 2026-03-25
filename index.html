@@ -87,8 +87,13 @@ img { display:block; }
 }
 .hero-btn:hover { background:#fff; transform:translateY(-2px); box-shadow:0 20px 48px rgba(0,0,0,.35); }
 
+.hero-thumbs { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:36px; position:relative; max-width:440px; }
+.hero-thumbs img { width:100%; height:200px; object-fit:cover; border-radius:10px; border:2px solid rgba(184,154,94,.35); opacity:.85; transition:all .3s; }
+.hero-thumbs img:hover { opacity:1; border-color:var(--gold); transform:translateY(-3px); }
+@media(max-width:768px) { .hero-thumbs { max-width:100%; } .hero-thumbs img { height:140px; } }
+
 .hero-right { position:relative; overflow:hidden; }
-@media(max-width:768px) { .hero-right { height:55vw; } }
+@media(max-width:768px) { .hero-right { height:auto; min-height:70vw; } }
 .hero-right img { width:100%; height:100%; object-fit:cover; }
 .hero-right-veil {
   position:absolute; inset:0;
@@ -404,6 +409,12 @@ img { display:block; }
       <span class="hero-pill">✦ 고급크라프트봉투 100장</span>
     </div>
     <a href="#pricing" class="hero-btn">패키지 살펴보기 →</a>
+    <div class="hero-thumbs">
+      <img src="nemorizz-images/hero-thumb-01.png" alt="포토부스 키오스크">
+      <img src="nemorizz-images/hero-thumb-02.png" alt="파티 포토부스">
+      <img src="nemorizz-images/hero-thumb-03.png" alt="웨딩 포토부스">
+      <img src="nemorizz-images/hero-thumb-04.png" alt="졸업식 포토부스">
+    </div>
   </div>
   <div class="hero-right">
     <img src="nemorizz-images/frame-sample-main.jpg" alt="웨딩 포토부스">
