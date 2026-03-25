@@ -1,0 +1,510 @@
+/* ─── AI FRAME DESIGNER (Canvas) ─── */
+const sampleFrames = [
+  'KakaoTalk_20251023_234331547.jpg',
+  'KakaoTalk_20251024_001309686.jpg',
+  'KakaoTalk_20251126_205831392.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352365913.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352369677.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352373874.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352380408.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352384576.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352388057.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352391358.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352394338.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352397485.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352400818.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352404299.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352407563.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352411115.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352414275.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352417764.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352423058.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352426410.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352430988.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352571456.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352575158.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352578308.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352581355.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352585105.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352587987.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352594099.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352597415.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352600665.png',
+  'Korean_photo_booth_frame_template_in_vertical_4x6_-1774352603846.png',
+  encodeURIComponent('문제없는영화제 인생네컷로고추가 최종.jpg'),
+  encodeURIComponent('제목을 입력해주세요.- 복사본 (1).png')
+];
+
+let carouselPos = 0;
+let selectedFrame = '';
+let selectedFrameSrc = '';
+let imgPosition = 'mid-center';
+let remainUses = 3;
+let userLogoData = null;
+let userImgData = null;
+
+// ── 캐러셀 빌드 ──
+const carousel = document.getElementById('carousel');
+sampleFrames.forEach((f, i) => {
+  const div = document.createElement('div');
+  div.style.cssText = 'flex-shrink:0;width:140px;aspect-ratio:4/6;border:2px solid transparent;cursor:pointer;overflow:hidden;transition:border .2s,transform .2s;border-radius:4px;';
+  const img = document.createElement('img');
+  img.src = 'nemorizz-images/sample-frames/' + f;
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+  img.loading = 'lazy';
+  div.appendChild(img);
+  div.onclick = () => selectFrame(i, f);
+  carousel.appendChild(div);
+});
+
+function scrollCarousel(dir) {
+  const wrap = document.getElementById('carouselWrap');
+  const maxScroll = carousel.scrollWidth - wrap.clientWidth;
+  carouselPos = Math.max(0, Math.min(carouselPos + dir * 300, maxScroll));
+  carousel.style.transform = 'translateX(-' + carouselPos + 'px)';
+}
+
+function selectFrame(idx, filename) {
+  selectedFrame = filename;
+  carousel.querySelectorAll('div').forEach((d,i) => {
+    d.style.borderColor = i === idx ? '#B89A5E' : 'transparent';
+    d.style.transform = i === idx ? 'scale(1.05)' : 'scale(1)';
+  });
+  const preview = document.getElementById('previewFrameImg');
+  preview.src = 'nemorizz-images/sample-frames/' + filename;
+  preview.style.display = 'block';
+  document.getElementById('previewPlaceholder').style.display = 'none';
+
+  // base64로 변환해서 저장 (AI에 전송용)
+  fetch('nemorizz-images/sample-frames/' + filename)
+    .then(r => r.blob())
+    .then(blob => {
+      const reader = new FileReader();
+      reader.onload = () => { selectedFrameSrc = reader.result.split(',')[1]; };
+      reader.readAsDataURL(blob);
+    }).catch(() => {});
+}
+
+// ── 9곳 위치 ──
+function setImgPos9(btn) {
+  document.querySelectorAll('.pos9-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  imgPosition = btn.dataset.pos;
+}
+
+// ── 로고 ──
+function handleLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => { userLogoData = ev.target.result; };
+  reader.readAsDataURL(file);
+}
+
+// ── 이미지 업로드 ──
+function handleImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => { userImgData = ev.target.result; };
+  reader.readAsDataURL(file);
+}
+
+// ── AI 프레임 편집 (Gemini Image + Canvas) ──
+const API_KEY = 'AIzaSyCAUxF0Grc4Dyk1ANebvT0b3iMTPX5vEEA';
+const GEMINI_IMAGE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=' + API_KEY;
+const GEMINI_TEXT_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + API_KEY;
+
+async function generateWithAI() {
+  if (remainUses <= 0) {
+    document.getElementById('limitMsg').style.display = 'block';
+    return;
+  }
+  if (!selectedFrame || !selectedFrameSrc) {
+    alert('샘플 프레임을 먼저 선택해주세요.');
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  const spinner = document.getElementById('loadingSpinner');
+  const spinnerText = spinner.querySelector('p');
+  btn.style.display = 'none';
+  spinner.style.display = 'block';
+  document.getElementById('aiResult').style.display = 'none';
+
+  const mainT = document.getElementById('mainTitle').value || '';
+  const subT = document.getElementById('subTitle').value || '';
+  const dateV = document.getElementById('dateInput').value || '';
+  const fontV = document.getElementById('fontSelect').value || '';
+  const extra = document.getElementById('aiPrompt').value || '';
+
+  // 입력값이 하나도 없으면 안내
+  if (!mainT && !subT && !dateV && !extra) {
+    alert('변경할 내용을 하나 이상 입력해주세요.\n(메인 제목, 서브 제목, 날짜 등)');
+    spinner.style.display = 'none';
+    btn.style.display = 'inline-block';
+    return;
+  }
+
+  try {
+    // ── Step 1: Gemini로 텍스트 위치/스타일 상세 분석 ──
+    spinnerText.textContent = '샘플 프레임 분석 중...';
+    console.log('🔍 Step 1: 텍스트 분석');
+
+    // 이미지 크기 파악
+    const tmpImg = new Image();
+    const imgSize = await new Promise(r => {
+      tmpImg.onload = () => r({ w: tmpImg.width, h: tmpImg.height });
+      tmpImg.src = 'data:image/png;base64,' + selectedFrameSrc;
+    });
+
+    const analyzeRes = await fetch(GEMINI_TEXT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inlineData: { mimeType: 'image/png', data: selectedFrameSrc } },
+            { text: 'This photo booth frame image is ' + imgSize.w + 'x' + imgSize.h + ' pixels.\n\n' +
+              'Find ALL text elements and return their EXACT pixel bounding boxes and visual style.\n\n' +
+              'Return JSON only (no markdown, no code fence):\n' +
+              '{\n' +
+              '  "texts": [\n' +
+              '    {\n' +
+              '      "role": "mainTitle",\n' +
+              '      "content": "exact text shown",\n' +
+              '      "centerX": 500,\n' +
+              '      "centerY": 80,\n' +
+              '      "fontSizePx": 48,\n' +
+              '      "fontWeight": "bold",\n' +
+              '      "fontCategory": "cute_rounded" or "serif" or "sans_serif" or "handwritten" or "decorative" or "gothic_bold",\n' +
+              '      "color": "#FFFFFF",\n' +
+              '      "hasOutline": false,\n' +
+              '      "outlineColor": "#000000",\n' +
+              '      "hasShadow": false\n' +
+              '    }\n' +
+              '  ]\n' +
+              '}\n\n' +
+              'centerX, centerY = center point of text in pixels.\n' +
+              'fontSizePx = estimated font size in pixels.\n' +
+              'fontCategory options:\n' +
+              '- "cute_rounded": 귀여운/둥근 (like Gaegu, Jua, Gamja Flower, Cute Font)\n' +
+              '- "serif": 명조체/세리프 (like Noto Serif KR)\n' +
+              '- "sans_serif": 고딕체/산세리프 (like Noto Sans KR)\n' +
+              '- "handwritten": 손글씨 (like Hi Melody, Poor Story, Single Day)\n' +
+              '- "decorative": 장식체 (like Gugi, Black Han Sans)\n' +
+              '- "gothic_bold": 굵은 고딕 (like Do Hyeon, Black Han Sans)\n' +
+              'Be very precise with centerX, centerY coordinates. Return ONLY JSON.' }
+          ]
+        }]
+      })
+    });
+    const analyzeData = await analyzeRes.json();
+    let textInfo = { texts: [] };
+    if (analyzeData.candidates?.[0]) {
+      let raw = analyzeData.candidates[0].content.parts[0].text;
+      raw = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      try { textInfo = JSON.parse(raw); } catch(e) { console.warn('분석 JSON 파싱 실패:', raw); }
+    }
+    console.log('✅ Step 1 완료:', JSON.stringify(textInfo, null, 2));
+
+    // ── Step 2: Gemini Image로 텍스트만 제거 ──
+    spinnerText.textContent = '기존 텍스트 제거 중...';
+    console.log('🧹 Step 2: 텍스트 제거');
+
+    // 사용자가 입력한 항목만 제거 대상
+    const textsToRemove = [];
+    const origTexts = {};
+    (textInfo.texts || []).forEach(t => { if (!origTexts[t.role]) origTexts[t.role] = t; });
+
+    if (mainT && origTexts.mainTitle) textsToRemove.push(origTexts.mainTitle.content);
+    if (subT && origTexts.subTitle) textsToRemove.push(origTexts.subTitle.content);
+    if (dateV && origTexts.date) textsToRemove.push(origTexts.date.content);
+
+    const textList = textsToRemove.map(t => '"' + t + '"').join(', ');
+
+    const removeRes = await fetch(GEMINI_IMAGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inlineData: { mimeType: 'image/png', data: selectedFrameSrc } },
+            { text: 'You must edit this image. This is a photo booth frame template.\n\n' +
+              'TASK: Erase ONLY these specific texts from the image: ' + textList + '\n\n' +
+              'For each text you remove:\n' +
+              '- Completely remove every pixel of the text (letters, numbers, symbols)\n' +
+              '- Reconstruct what the background would look like behind the text\n' +
+              '- Match the surrounding colors, patterns, gradients, and textures exactly\n' +
+              '- The result should look as if the text was never there\n\n' +
+              'DO NOT CHANGE:\n' +
+              '- Any illustrations, icons, logos, or decorative elements\n' +
+              '- Any borders, lines, or frame elements\n' +
+              '- The photo slot areas (white rectangles)\n' +
+              '- The image size or aspect ratio\n' +
+              '- Any text NOT listed above\n\n' +
+              'Return the edited image.' }
+          ]
+        }],
+        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
+      })
+    });
+    const removeData = await removeRes.json();
+    let cleanedB64 = null;
+    if (removeData.candidates?.[0]) {
+      for (const part of removeData.candidates[0].content.parts) {
+        if (part.inlineData) { cleanedB64 = part.inlineData.data; break; }
+      }
+    }
+    if (!cleanedB64) throw new Error('텍스트 제거 실패');
+    console.log('✅ Step 2 완료');
+
+    // ── Step 2.5: 업로드 이미지 누끼 처리 ──
+    let processedImgData = userImgData;
+    if (userImgData) {
+      spinnerText.textContent = '이미지 배경 제거 중...';
+      console.log('✂️ Step 2.5: 누끼 처리');
+      try {
+        const imgB64 = userImgData.split(',')[1];
+        const nukkiRes = await fetch(GEMINI_IMAGE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { inlineData: { mimeType: 'image/png', data: imgB64 } },
+                { text: 'Remove the background from this image completely. Make the background fully transparent. Keep only the main subject/object. Return the image with transparent background as PNG.' }
+              ]
+            }],
+            generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
+          })
+        });
+        const nukkiData = await nukkiRes.json();
+        if (nukkiData.candidates?.[0]) {
+          for (const part of nukkiData.candidates[0].content.parts) {
+            if (part.inlineData) {
+              processedImgData = 'data:image/png;base64,' + part.inlineData.data;
+              console.log('✅ 누끼 처리 완료');
+              break;
+            }
+          }
+        }
+      } catch(e) {
+        console.warn('누끼 처리 실패, 원본 사용:', e);
+      }
+    }
+
+    // ── Step 3: Canvas로 정확한 한글 텍스트 + 로고 그리기 ──
+    spinnerText.textContent = '새 텍스트 적용 중...';
+    console.log('✍️ Step 3: Canvas 텍스트 + 로고');
+
+    // subTitle/date fallback: 분석에서 못 찾았을 때 기본 위치 지정
+    if (subT && !origTexts.subTitle) {
+      origTexts.subTitle = {
+        role: 'subTitle', content: '', centerX: imgSize.w / 2, centerY: imgSize.h * 0.92,
+        fontSizePx: Math.round(imgSize.w * 0.04), fontWeight: 'bold',
+        fontCategory: origTexts.mainTitle?.fontCategory || 'sans_serif',
+        color: origTexts.mainTitle?.color || '#FFFFFF', hasOutline: false, hasShadow: false
+      };
+    }
+    if (dateV && !origTexts.date) {
+      origTexts.date = {
+        role: 'date', content: '', centerX: imgSize.w / 2, centerY: imgSize.h * 0.96,
+        fontSizePx: Math.round(imgSize.w * 0.025), fontWeight: 'regular',
+        fontCategory: 'sans_serif',
+        color: origTexts.mainTitle?.color || '#FFFFFF', hasOutline: false, hasShadow: false
+      };
+    }
+
+    const finalImage = await renderOnCanvas(cleanedB64, imgSize, origTexts, {
+      mainTitle: mainT, subTitle: subT,
+      date: dateV ? dateV.replace(/-/g, '.') : '',
+      font: fontV, logoData: userLogoData, imgData: processedImgData, imgPosition: imgPosition
+    });
+
+    // 결과 표시
+    document.getElementById('aiResultImg').src = finalImage;
+    document.getElementById('aiResult').style.display = 'block';
+    remainUses--;
+    document.getElementById('remainCount').textContent = '남은 무료 생성 횟수: ' + remainUses + '회';
+    document.getElementById('applySection').style.display = 'block';
+    if (remainUses <= 0) document.getElementById('limitMsg').style.display = 'block';
+    console.log('✅ 완료!');
+
+  } catch (err) {
+    alert('AI 생성 중 오류가 발생했습니다: ' + err.message);
+    console.error(err);
+  }
+
+  spinnerText.textContent = 'AI가 프레임을 생성하고 있습니다...';
+  spinner.style.display = 'none';
+  btn.style.display = 'inline-block';
+}
+
+// ── Canvas 렌더링: 정확한 한글 텍스트 + 로고 ──
+function renderOnCanvas(cleanedB64, imgSize, origTexts, userInput) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      const W = canvas.width;
+      const H = canvas.height;
+
+      // 폰트 카테고리 → 실제 폰트 매핑
+      const fontMap = {
+        'cute_rounded': '"Gaegu", "Jua", "Gamja Flower", cursive',
+        'serif': '"Noto Serif KR", "Cormorant Garamond", serif',
+        'sans_serif': '"Noto Sans KR", "DM Sans", sans-serif',
+        'handwritten': '"Hi Melody", "Poor Story", "Single Day", cursive',
+        'decorative': '"Gugi", "Black Han Sans", sans-serif',
+        'gothic_bold': '"Do Hyeon", "Black Han Sans", "Noto Sans KR", sans-serif'
+      };
+
+      function getFont(orig, role) {
+        // 사용자가 폰트 선택했으면 그것 사용
+        if (userInput.font) return userInput.font + ', "Noto Sans KR", sans-serif';
+        // 분석된 카테고리로 매핑
+        const cat = orig?.fontCategory || '';
+        return fontMap[cat] || fontMap['sans_serif'];
+      }
+
+      function getWeight(orig) {
+        const w = (orig?.fontWeight || '').toLowerCase();
+        if (w.includes('bold') || w.includes('extra')) return '700';
+        if (w.includes('light') || w.includes('thin')) return '300';
+        return '400';
+      }
+
+      // 텍스트 그리기 함수
+      function drawText(text, orig, role) {
+        if (!text || !orig) return;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const weight = getWeight(orig);
+        const family = getFont(orig, role);
+        let fontSize = orig.fontSizePx || (role === 'mainTitle' ? W * 0.06 : role === 'subTitle' ? W * 0.04 : W * 0.03);
+        fontSize = Math.round(fontSize);
+
+        ctx.font = weight + ' ' + fontSize + 'px ' + family;
+        ctx.fillStyle = orig.color || '#000000';
+
+        // 텍스트가 프레임 너비를 넘으면 축소
+        const maxW = W * 0.85;
+        while (ctx.measureText(text).width > maxW && fontSize > 10) {
+          fontSize--;
+          ctx.font = weight + ' ' + fontSize + 'px ' + family;
+        }
+
+        const cx = orig.centerX || W / 2;
+        const cy = orig.centerY || (role === 'mainTitle' ? H * 0.05 : H * 0.93);
+
+        // 외곽선 (outline)
+        if (orig.hasOutline) {
+          ctx.strokeStyle = orig.outlineColor || '#000000';
+          ctx.lineWidth = Math.max(2, fontSize * 0.06);
+          ctx.lineJoin = 'round';
+          ctx.strokeText(text, cx, cy);
+        }
+
+        // 그림자
+        if (orig.hasShadow) {
+          ctx.shadowColor = 'rgba(0,0,0,0.4)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+        }
+
+        ctx.fillText(text, cx, cy);
+        ctx.restore();
+        console.log('✍️', role, ':', text, 'at', cx, cy, 'size:', fontSize, 'font:', family);
+      }
+
+      // 메인 제목
+      if (userInput.mainTitle) drawText(userInput.mainTitle, origTexts.mainTitle, 'mainTitle');
+      // 서브 제목
+      if (userInput.subTitle) drawText(userInput.subTitle, origTexts.subTitle, 'subTitle');
+      // 날짜
+      if (userInput.date) drawText(userInput.date, origTexts.date, 'date');
+
+      // 로고 그리기
+      const drawLogo = (logoSrc) => {
+        return new Promise((res) => {
+          if (!logoSrc) { res(); return; }
+          const logoImg = new Image();
+          logoImg.onload = () => {
+            // 로고 크기: 프레임 너비의 15% 정도
+            const logoMaxW = W * 0.15;
+            const logoMaxH = H * 0.08;
+            const scale = Math.min(logoMaxW / logoImg.width, logoMaxH / logoImg.height);
+            const lw = logoImg.width * scale;
+            const lh = logoImg.height * scale;
+
+            // 위치 계산
+            const posMap = {
+              'top-left': [W * 0.08, H * 0.02],
+              'top-center': [W * 0.5 - lw / 2, H * 0.02],
+              'top-right': [W * 0.92 - lw, H * 0.02],
+              'mid-left': [W * 0.08, H * 0.5 - lh / 2],
+              'mid-center': [W * 0.5 - lw / 2, H * 0.5 - lh / 2],
+              'mid-right': [W * 0.92 - lw, H * 0.5 - lh / 2],
+              'bot-left': [W * 0.08, H * 0.96 - lh],
+              'bot-center': [W * 0.5 - lw / 2, H * 0.96 - lh],
+              'bot-right': [W * 0.92 - lw, H * 0.96 - lh]
+            };
+            const pos = posMap[userInput.imgPosition] || posMap['bot-center'];
+            ctx.drawImage(logoImg, pos[0], pos[1], lw, lh);
+            console.log('🖼️ 로고 그림:', pos[0], pos[1], lw, 'x', lh);
+            res();
+          };
+          logoImg.onerror = () => { console.warn('로고 로드 실패'); res(); };
+          logoImg.src = logoSrc;
+        });
+      };
+
+      // 이미지 그리기 (로고와 동일한 위치 로직)
+      const drawUserImg = (imgSrc) => {
+        return new Promise((res) => {
+          if (!imgSrc) { res(); return; }
+          const uImg = new Image();
+          uImg.onload = () => {
+            const maxW = W * 0.2;
+            const maxH = H * 0.1;
+            const scale = Math.min(maxW / uImg.width, maxH / uImg.height);
+            const uw = uImg.width * scale;
+            const uh = uImg.height * scale;
+            const posMap = {
+              'top-left': [W * 0.08, H * 0.02],
+              'top-center': [W * 0.5 - uw / 2, H * 0.02],
+              'top-right': [W * 0.92 - uw, H * 0.02],
+              'mid-left': [W * 0.08, H * 0.5 - uh / 2],
+              'mid-center': [W * 0.5 - uw / 2, H * 0.5 - uh / 2],
+              'mid-right': [W * 0.92 - uw, H * 0.5 - uh / 2],
+              'bot-left': [W * 0.08, H * 0.96 - uh],
+              'bot-center': [W * 0.5 - uw / 2, H * 0.96 - uh],
+              'bot-right': [W * 0.92 - uw, H * 0.96 - uh]
+            };
+            const pos = posMap[userInput.imgPosition] || posMap['bot-center'];
+            ctx.drawImage(uImg, pos[0], pos[1], uw, uh);
+            console.log('🖼️ 이미지 그림:', pos[0], pos[1]);
+            res();
+          };
+          uImg.onerror = () => { console.warn('이미지 로드 실패'); res(); };
+          uImg.src = imgSrc;
+        });
+      };
+
+      // 로고 → 이미지 순서로 그린 후 완료
+      drawLogo(userInput.logoData)
+        .then(() => drawUserImg(userInput.imgData))
+        .then(() => resolve(canvas.toDataURL('image/png')));
+    };
+    img.src = 'data:image/png;base64,' + cleanedB64;
+  });
+}

@@ -1,0 +1,120 @@
+    <!-- AI 포토프레임 셀프제작 -->
+    <div id="ai-frame" style="background:var(--ink); border:1px solid rgba(184,154,94,.2); overflow:hidden;">
+      <div style="padding:48px 48px 32px; text-align:center;">
+        <p class="section-label" style="color:var(--gold);">AI Frame Designer</p>
+        <h3 style="font-family:'Cormorant Garamond',serif; font-size:36px; color:#fff; margin-bottom:8px;">셀프 AI 포토프레임 만들기</h3>
+        <p style="font-size:13px; color:rgba(255,255,255,.45); margin-bottom:6px;">샘플 외 모든 커스터마이징 가능 · 가로버전 및 규격변경도 가능</p>
+        <p style="font-size:12px; color:var(--gold);">무료 3회 생성 가능 · 추가 생성은 문의해주세요</p>
+      </div>
+
+      <!-- 샘플 캐러셀 -->
+      <div style="padding:0 48px 32px;">
+        <p style="color:var(--gold); font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:16px; text-align:center;">Sample Frames — 클릭하여 선택</p>
+        <div id="carouselWrap" style="position:relative; overflow:hidden;">
+          <div id="carousel" style="display:flex; gap:12px; transition:transform .4s ease; cursor:grab;">
+          </div>
+          <button onclick="scrollCarousel(-1)" style="position:absolute;left:0;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.6);color:#fff;border:none;width:36px;height:36px;cursor:pointer;font-size:18px;border-radius:50%;">&#8249;</button>
+          <button onclick="scrollCarousel(1)" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.6);color:#fff;border:none;width:36px;height:36px;cursor:pointer;font-size:18px;border-radius:50%;">&#8250;</button>
+        </div>
+      </div>
+
+      <!-- 입력 폼 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:0 48px 32px;">
+        <div>
+          <label class="frm-label">메인 제목 (상단)</label>
+          <input id="mainTitle" type="text" placeholder="예: 민우 ♥ 수연" class="frm-input">
+        </div>
+        <div>
+          <label class="frm-label">서브 제목 (하단)</label>
+          <input id="subTitle" type="text" placeholder="예: Our Special Day" class="frm-input">
+        </div>
+        <div>
+          <label class="frm-label">날짜</label>
+          <input id="dateInput" type="date" class="frm-input">
+        </div>
+        <div>
+          <label class="frm-label">글씨체 선택</label>
+          <select id="fontSelect" class="frm-input">
+            <option value="Cormorant Garamond">Cormorant Garamond (세리프)</option>
+            <option value="Noto Serif KR">Noto Serif KR (한글 세리프)</option>
+            <option value="DM Sans">DM Sans (산세리프)</option>
+            <option value="Georgia">Georgia (클래식)</option>
+            <option value="Garamond">Garamond (우아한)</option>
+            <option value="cursive">Cursive (손글씨)</option>
+            <option value="Playfair Display">Playfair Display (모던 세리프)</option>
+          </select>
+        </div>
+        <div>
+          <label class="frm-label">로고 업로드 (하단 반영)</label>
+          <input id="logoInput" type="file" accept="image/*" onchange="handleLogo(event)" class="frm-input" style="padding:10px 16px;">
+        </div>
+        <div>
+          <label class="frm-label">이미지/로고 업로드 (누끼 자동 처리)</label>
+          <input id="imgInput" type="file" accept="image/*" onchange="handleImage(event)" class="frm-input" style="padding:10px 16px;">
+        </div>
+      </div>
+
+      <!-- 이미지 위치 9곳 그리드 -->
+      <div style="padding:0 48px 32px;">
+        <label class="frm-label">이미지 배치 위치 (9곳)</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:240px;margin-top:8px;">
+          <button class="pos9-btn" data-pos="top-left" onclick="setImgPos9(this)">↖ 상좌</button>
+          <button class="pos9-btn" data-pos="top-center" onclick="setImgPos9(this)">↑ 상중</button>
+          <button class="pos9-btn" data-pos="top-right" onclick="setImgPos9(this)">↗ 상우</button>
+          <button class="pos9-btn" data-pos="mid-left" onclick="setImgPos9(this)">← 중좌</button>
+          <button class="pos9-btn active" data-pos="mid-center" onclick="setImgPos9(this)">● 중중</button>
+          <button class="pos9-btn" data-pos="mid-right" onclick="setImgPos9(this)">→ 중우</button>
+          <button class="pos9-btn" data-pos="bot-left" onclick="setImgPos9(this)">↙ 하좌</button>
+          <button class="pos9-btn" data-pos="bot-center" onclick="setImgPos9(this)">↓ 하중</button>
+          <button class="pos9-btn" data-pos="bot-right" onclick="setImgPos9(this)">↘ 하우</button>
+        </div>
+      </div>
+
+      <!-- AI 추가 명령어 -->
+      <div style="padding:0 48px 32px;">
+        <label class="frm-label">AI 추가 명령어</label>
+        <textarea id="aiPrompt" rows="3" placeholder="예: 벚꽃 테마로 부드러운 핑크톤으로 변경해줘, 폰트를 좀 더 귀엽게 해줘..." class="frm-input" style="resize:vertical;font-family:inherit;"></textarea>
+      </div>
+
+      <!-- 선택한 샘플 미리보기 -->
+      <div style="padding:0 48px 32px; text-align:center;">
+        <p style="color:var(--gold);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;">Selected Sample</p>
+        <div id="selectedPreview" style="display:inline-block;max-width:300px;width:100%;aspect-ratio:4/6;background:rgba(255,255,255,.03);border:1px solid rgba(184,154,94,.2);overflow:hidden;position:relative;">
+          <img id="previewFrameImg" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+          <p id="previewPlaceholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.2);font-size:14px;">샘플을 선택하세요</p>
+        </div>
+      </div>
+
+      <!-- AI 생성 버튼 + 남은횟수 -->
+      <div style="padding:0 48px 20px; text-align:center;">
+        <p id="remainCount" style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:12px;">남은 무료 생성 횟수: 3회</p>
+        <button id="generateBtn" onclick="generateWithAI()" style="background:var(--gold);color:var(--ink);border:none;padding:16px 48px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:.3s;margin-bottom:12px;">AI로 프레임 생성하기</button>
+        <div id="loadingSpinner" style="display:none;margin:20px 0;">
+          <div style="width:40px;height:40px;border:3px solid rgba(184,154,94,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div>
+          <p style="color:rgba(255,255,255,.5);font-size:13px;margin-top:12px;">AI가 프레임을 생성하고 있습니다...</p>
+        </div>
+        <div id="aiResult" style="display:none;margin-top:24px;">
+          <p style="color:var(--gold);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;">AI Generated Result</p>
+          <img id="aiResultImg" src="" style="max-width:360px;width:100%;border:1px solid rgba(184,154,94,.3);">
+        </div>
+      </div>
+
+      <!-- 신청하기 -->
+      <div id="applySection" style="display:none; padding:0 48px 32px; text-align:center;">
+        <div style="background:rgba(184,154,94,.08);border:1px solid rgba(184,154,94,.2);padding:24px;margin-bottom:16px;">
+          <p style="color:var(--gold);font-size:13px;font-weight:600;margin-bottom:12px;">마음에 드시나요? 그대로 신청하세요!</p>
+          <textarea id="additionalRequest" rows="3" placeholder="추가 요청사항을 적어주세요 (선택)" class="frm-input" style="resize:vertical;font-family:inherit;margin-bottom:12px;"></textarea>
+          <a href="https://open.kakao.com/o/sCxfuCjh" target="_blank" style="display:inline-block;background:var(--gold);color:var(--ink);padding:14px 40px;font-size:12px;font-weight:700;letter-spacing:2px;text-decoration:none;text-transform:uppercase;transition:.3s;">이 디자인으로 신청하기 →</a>
+        </div>
+      </div>
+
+      <!-- 3회 초과 안내 -->
+      <div id="limitMsg" style="display:none; padding:0 48px 32px; text-align:center;">
+        <div style="background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.3);padding:20px;">
+          <p style="color:#e74c3c;font-size:14px;margin-bottom:12px;">무료 생성 횟수를 모두 사용하셨습니다</p>
+          <a href="https://open.kakao.com/o/sCxfuCjh" target="_blank" style="display:inline-block;background:var(--gold);color:var(--ink);padding:12px 32px;font-size:12px;font-weight:700;letter-spacing:1.5px;text-decoration:none;">직접 문의하기 →</a>
+        </div>
+      </div>
+
+      <p style="text-align:center;color:rgba(255,255,255,.3);font-size:11px;padding:0 48px 24px;">* 디자이너가 최종 검수 및 추가 수정을 진행합니다 · 샘플 이외에도 모든 커스터마이징 가능 · 가로버전 및 규격변경도 가능</p>
+    </div>
