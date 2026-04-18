@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://nemorizz.com/</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://nemorizz.com/nemorizz-images/hero.jpg</image:loc>
+      <image:title>NEMORIZZ 웨딩 포토부스</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://nemorizz.com/nemorizz-images/magazine-01.jpg</image:loc>
+      <image:title>매거진 포토부스</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://nemorizz.com/nemorizz-images/kiosk-ui.jpg</image:loc>
+      <image:title>AI 매직미러 포토부스</image:title>
+    </image:image>
+  </url>
+</urlset>

@@ -1,0 +1,42 @@
+# NEMORIZZ Netlify 설정
+# GitHub 연동 후 git push 자동 배포 기준 설정
+
+[build]
+  publish = "."
+  command = ""
+
+# 이미지 자동 압축 (Netlify Pro 플랜 기능 활용)
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
+
+# 미러 경로 (예: /photobooth → / 리다이렉트)
+[[redirects]]
+  from = "/photobooth"
+  to = "/#services"
+  status = 301
+
+[[redirects]]
+  from = "/booking"
+  to = "/#contact"
+  status = 301
+
+# SPA-safe fallback (정적 사이트여도 안전)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
